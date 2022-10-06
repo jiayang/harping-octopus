@@ -42,9 +42,16 @@ body {
 
 #buttons {
     display: flex;
-    align-self: flex-start;
+}
+
+#buttons span {
+    margin: 0.5rem;
 }
 
 #pause {
     margin-left: 1rem;
+}
+
+#soonMsg {
+    font-size: 0.75rem;
 }

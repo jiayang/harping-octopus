@@ -1,23 +1,85 @@
 const loot = { 
-    at: 50,
-    duration: 5,
-    warning: 5,
+    offset: 110,
+    warning: 10,
+    repeat: 55,
     label: "Loot"
 };
 
 const lucid = {
-    at: 50,
-    duration: 5,
-    warning: 5,
+    offset: 55,
+    warning: 10,
+    repeat: 110,
     label: "Normal Lucid"
 };
 
+const goldpotion = {
+    offset: 1800,
+    warning: 10,
+    repeat: 1800,
+    label: "30 minute buffs"
+}
+
+var taskList = [lucid, loot, goldpotion];
+var runningTasks;
+var nextTask = {next: 10000, warning: -1};
+var additionalNextTasks;
+var soonTasks;
+var timeout;
+
 const statusState = document.createElement("span");
 const statusMsg = document.createElement("span");
+const soonMsg = document.createElement("span");
 const timeRemaining = document.createElement("span");
-statusState.setAttribute("id", "statusState");
-statusMsg.setAttribute("id", "statusMsg");
-timeRemaining.setAttribute("id", "timeRemaining");
+statusState.id = "statusState";
+statusMsg.id= "statusMsg";
+soonMsg.id = "soonMsg";
+timeRemaining.id = "timeRemaining";
+statusState.innerHTML = "Up Next: <br>"
+
+const resetButton = document.getElementById("reset");
+const stopButton = document.getElementById("stop");
+
+const updateSoonMsg = function() {
+    if (soonTasks.length == 0) {
+        soonMsg.innerHTML = "";
+    } else {
+        soonMsg.innerHTML = soonTasks.map(task => task.label).join(", ") + "<br>";
+    }
+}
+
+const updateStatusMsg = function () {
+    statusMsg.innerHTML = nextTask.label + "<br>";
+    additionalNextTasks.forEach((task) => {
+        statusMsg.innerHTML += task.label + "<br>";
+    });
+}
+
+const updateNextTask = function(taskList) {
+    nextTask = {next: 10000};
+    additionalNextTasks = [];
+    soonTasks = [];
+
+    taskList.forEach((task) => {
+        if (task.next < nextTask.next) {
+            nextTask = task;
+        }
+    });
+
+    taskList.forEach((task) => {
+        if (task.next == nextTask.next && task !== nextTask) {
+            additionalNextTasks.push(task);
+        } else if (task.next - nextTask.next <= 10 && task !== nextTask) {
+            soonTasks.push(task);
+        }
+    });
+    updateStatusMsg();
+    updateSoonMsg();
+}
+
+var flashOn = false;
+var flashMe = false;
+var flashInterval;
+
 
 var circleTimer = new ProgressBar.Circle('#timer', {
     strokeWidth: 4,
@@ -27,85 +89,63 @@ var circleTimer = new ProgressBar.Circle('#timer', {
         value: ""
     },
     step: function (state, circle) {
-        var value = end - Math.round(circle.value() * end);
-        timeRemaining.innerHTML = value;
+        var value = nextTask.next - Math.round(nextTask.next * circle.value());
+        flashMe = nextTask.warning >= value;
+        timeRemaining.innerHTML = value + "<br>";
     }
 });
+
 circleTimer.text.classList.add("timermsg");
 circleTimer.text.style.color = "white";
-
 circleTimer.text.appendChild(statusState);
 circleTimer.text.appendChild(statusMsg);
+circleTimer.text.appendChild(soonMsg);
 circleTimer.text.appendChild(timeRemaining);
 
-const reset = document.getElementById("reset");
-const timerbox = document.getElementById("timerbox");
-const pause = document.getElementById("pause");
-
-var runningInterval;
-var flashInterval;
-var flashMe;
-var queue;
-var i, warn, active, end;
-var flashon = false;
-
-pause.onclick = () => {
-    clearInterval(runningInterval);
+stopButton.onclick = () => {
+    clearTimeout(timeout);
     clearInterval(flashInterval);
     circleTimer.stop();
+    runningTasks = [];
 };
 
-reset.onclick = () => {
-    queue = [lucid, loot];
-    clearInterval(runningInterval);
-    clearInterval(flashInterval);
-    flashon = false;
-    runQueue();
-};
-
-const runQueue = function() {
-    warn = -1;
-    active = -1;
-    end = 0;
-    i = 0;
-
-    runningInterval = setInterval(() => {
-        if (i >= warn && i < active) {
-            statusState.innerHTML = "Warning: <br>";
-            flashMe = true;
-        } else if (i >= active && i < end) {
-            statusState.innerHTML = "Now: <br>";
-        } else if (i == end) {
-            flashMe = false;
-            circleTimer.path.setAttribute("stroke", "white");
-            task = queue.shift();
-            queue.push(task);
-            warn = task.at - task.warning;
-            active = task.at;
-            end = task.at + task.duration;
-            i = -1;
-            statusState.innerHTML = "Up Next: <br>";
-            statusMsg.innerHTML = task.label + "<br>";
-            circleTimer.set(0);
-            circleTimer.animate(1.0, {
-                duration: end * 1000
-            });
-        }
-
-        i += 1;
-    }, 1000);
-
+resetButton.onclick = () => {
+    stopButton.click();
+    taskList.forEach((task) => {startTask(task)});
     flashInterval = setInterval(() => {
         if (flashMe) {
-            if (flashon) {
-                circleTimer.path.setAttribute("stroke", "white");
-                flashon = !flashon;
+            if (flashOn) {
+                circleTimer.path.setAttribute("stroke", "#4a4a4a");
+                flashOn = !flashOn;
             } else {
                 circleTimer.path.setAttribute("stroke", "#FA86C4");
-                flashon = !flashon;
+                flashOn = !flashOn;
             }
+        } else {
+            circleTimer.path.setAttribute("stroke", "#4a4a4a");
         }
     }, 200);
-
-}
+    updateTasks(taskList);
     
+};
+
+const startTask = function(task) {
+    runningTasks.push(task);
+    task.next = task.offset;
+}
+
+const updateTasks = function() {
+    updateNextTask(taskList);
+    circleTimer.set(0);
+    circleTimer.animate(1.0, {
+        duration: nextTask.next * 1000
+    });
+    timeout = setTimeout((task) => {
+        let elapsed = task.next;
+        runningTasks.forEach((running) => {
+            running.next -= elapsed;
+            if (running.next == 0) running.next = running.repeat;
+        });
+        updateTasks(taskList);
+    }, nextTask.next * 1000, nextTask);
+}
