@@ -30,10 +30,15 @@ const createTask = function(label, offsetValue, warningValue, repeatValue) {
         <input value="${warningValue}"></input>
         <input value="${repeatValue}"></input>
         <input type='checkbox' checked="true"></input>
+        <span class='material-icons'>delete</span>
         </li>`;
     var template = document.createElement("template");
     template.innerHTML = html;
     var li = tasks.appendChild(template.content.firstChild);
+    li.children[5].onclick = () => {
+        li.remove();
+	menu.onchange();
+    };
     return li;
 }
 
@@ -42,9 +47,13 @@ addTask.onclick = () => {
 }
 
 if (localStorage.getItem("tasks") === null) {
-    createTask("Loot", 110, 10, 55);
-    createTask("Normal Lucid", 55, 10, 110);
+    createTask("Loot", 120, 10, 120);
     createTask("30m buffs", 1800, 10, 1800);
+    createTask("Threads OF FATE", 1800, 10, 1800);
+    createTask("20m WEALTH", 1200, 10, 1200);
+    createTask("10m WEALTH", 600, 10, 600);
+    createTask("15m EXP", 900, 10, 900);
+    createTask("WAP EAP", 7200, 10, 7200);
 } else {
     all = JSON.parse(localStorage.getItem("tasks"));
     all.forEach((task) => {
