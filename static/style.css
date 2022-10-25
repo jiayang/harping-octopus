@@ -96,3 +96,7 @@ body {
     -webkit-user-select: none;
     -o-user-select: none;
 }
+
+.material-icons:hover {
+    color:#FA86C4;
+}
