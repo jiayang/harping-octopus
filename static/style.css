@@ -87,3 +87,7 @@ body {
 #addTask {
     margin-bottom: auto;
 }
+
+.material-icons {
+    cursor: pointer;
+}
