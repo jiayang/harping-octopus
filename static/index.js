@@ -26,9 +26,9 @@ menuButton.onclick = function() {
 const createTask = function(label, offsetValue, warningValue, repeatValue) {
     var html = `<li>
         <input value="${label}"></input>
-        <input value="${offsetValue}"></input>
-        <input value="${warningValue}"></input>
-        <input value="${repeatValue}"></input>
+        <input class='input-time' value="${offsetValue}"></input>
+        <input class='input-time' value="${warningValue}"></input>
+        <input class='input-time' value="${repeatValue}"></input>
         <input type='checkbox' checked="true"></input>
         <span class='material-icons'>delete</span>
         </li>`;
