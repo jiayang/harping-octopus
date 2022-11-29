@@ -82,6 +82,7 @@ body {
     min-height: 15rem;
     list-style-type: none;
     padding: 2px;
+    overflow-x: scroll;
 }
 
 #addTask {
