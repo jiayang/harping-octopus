@@ -74,7 +74,7 @@ body {
     border-radius: 1rem;
     min-width: 25rem;
     min-height: 20rem;
-    padding-top: 2rem;
+    margin-top: 2rem;
     overflow-x: scroll;
 }
 
